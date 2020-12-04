@@ -1,0 +1,105 @@
+todo:
+    ☐ doc public methods
+    ✔ service builder @done(20-02-14 16:01)
+        ✔ configurable number of shards @done(20-02-14 15:01)
+        ✔ max items per shard (or globally?) @done(20-02-14 15:01)
+        ✔ default persist queue size per shard @done(20-02-14 15:45)
+        ✔ max shard sender backlog @done(20-02-14 15:48)
+    ✔ a bunch of trait constraints are dubious at best, remove them @done(20-02-13 02:05)
+        ✔ need to drop the default constraint on `ServiceData` @done(20-02-13 02:15)
+    ✔ allow the persistence layer to figure out whether data does not exist is a rejection, or if it default creates the data? @done(20-02-13 02:27)
+        ✔ how do we create data if that's not the case - which is to say, "we want to check if this row exists, if it does not - create it" if the persistence layer doesn't like it? @done(20-02-13 02:28)
+        ✔ there are types that don't have a sane Default impl, but may be always "synthesized" from the persistence layer? @done(20-02-13 02:16)
+    ☐ persist writes
+        ✔ persist queue @done(20-02-12 20:52)
+            ✔ tests @done(20-02-20 13:23)
+        ☐ data commit request
+            ✔ should hold a ref, and only clone if the persistence layer needs to clone, so `DataCommitRequest` -> {`OwnedDataCommitRequest` -> `ProcessingDataCommitRequest`}. @done(20-03-07 03:29)
+                ☐ shard handling
+                    ☐ handle next acton cases
+                        ☐ CommitImmediately
+                        ☐ CommitAfter
+                        ☐ FinishTakeOver       
+        ✔ if data is in owned by persist queue, and we try to load that data, we should re-take ownership of the data. @done(20-02-19 18:06)
+        ☐ properly implement `Shard::persist_all`
+    ✔ handle data load failure @done(20-03-03 16:47)
+    ✔ lru in main hashmap using indexmap @done(20-03-02 13:09)
+        ✔ lru candidates @done(20-02-13 20:09)
+            ✔ tests @done(20-03-02 13:09)
+        ✔ random probing of the hashmap to evict expired data? @done(20-02-27 18:53)
+            this is the redis strategy: https://redis.io/commands/expire#how-redis-expires-keys
+        ✔ we don't need perfect lru, and if we want to get random probing to expire (a-la redis 3.0) we should consider a strategy like the one here: http://antirez.com/news/109 @done(20-02-13 19:55)
+        ✔ enforce max capacity and call evict_lru. @done(20-02-13 21:10)
+            ✔ it is possible to overflow with loading data, how do we want to handle that case? @done(20-02-20 13:49)
+                should the LRU have some additional buffer, that it tries to reconcile if there is too much data? should we fail the load 
+                if there is not enough capacity? we can say...
+                    "if we are at capacity, and we want to insert a new key, and we tried to evict a key and are still at capacity, fail
+                     that request."
+    ✔ check data expiration on read too. @done(20-03-27 11:02)
+    ☐ deletes too
+    ☐ need a way to evict by key, w/o removing from persist queue.
+    ☐ take_data needs to hang onto the data until the commit finishes, if it's in-flight.
+    ✔ service handle pooling? @done(20-02-26 21:52)
+    ✔ handle shard handle making request when shard is gone. @done(20-02-19 15:28)
+        ✔ handle result_tx drop in shard sender as well. @done(20-02-19 15:28)
+    ✔ plug-n-play cassandra persistence. @done(20-04-22 14:48)
+    ☐ stop shards and flush data.
+        ☐ need a join handle for all the shards, so we can know when they've finished work.
+    ✔ take data by key (and cancel commit.) @done(20-02-20 13:37)
+        ✔ make it work for in-flight requests @done(20-02-28 14:14)
+        ☐ big todo: if we are persisting data due to an immediate write persistence policy, we need to ensure that take doesn't move the data before it's persisted.
+    ✔ restructure service, move things out of lib.rs and into their own modules. @done(20-03-03 16:33)
+    ✔ persistence -> upstream/commit @done(20-03-07 03:29)
+
+api QOL: 
+    ☐ `DataPersistenceFactory.create` should return an `impl Future<Output=Result<T, Error>>` (until we get good async traits, this should be fine for now, sync factories can return an already resolved future...)
+    ✔ can we build an `async fn async_result` on `DataLoadRequest` that will let us do: @done(20-03-01 18:55)
+        tokio::spawn(request.capture_result(async move {
+            let result = fut.await?;
+            let row = result.first_row()?;
+            let s = row.get_column(0)?.get_i64()?;
+            Ok(Counter { s })
+        }))
+
+list of things i need to write tests for so i dont forget
+tests:
+    ☐ take data
+        ☐ take data when data is being loaded.
+            ☐ and there already is a take pending
+            ☐ and the data load fails
+        ☐ take data when data has finished loading
+    ☐ lru
+        ☐ evicts if there are keys available to evict.
+        ☐ if there is nothing available to evict at the time, will return an error.
+
+    ☐ expires
+        ☐ does not return expired data
+        ☐ starts cleaning up the shard data using random probe.
+        ☐ handles the random probe sled by cleaning up data appropriately.
+    ☐ load 
+        ☐ successful load
+        ☐ successful load with multiple pending requests
+        ☐ load failed
+        ☐ load failed w/ multiple pending requests.
+
+    ☐ stats
+        ☐ executions complete (doesnt leak on success or fail, or success+cached)
+        ☐ loads complete
+
+    ☐ this list not yet complete
+
+oss: 
+    ☐ docs upon docs
+    ☐ readme
+
+next:
+    ✘ tokio 0.3 upgrade @cancelled(20-04-22 14:49) not needed, tokio 0.2.14 added it.
+        ✔ remove todo for: https://github.com/tokio-rs/tokio/pull/2160 @done(20-03-26 14:22)
+
+examples:
+    ✔ cassandra example @done(20-03-03 17:17)
+    ✔ in-memory example @done(20-03-03 17:17)
+
+optimizations:
+    ✔ investigate pooling around the service handles @done(20-03-03 16:33)
+    ✘ wonder if we can poll the FnOnce's as well? @cancelled(20-02-12 21:46)
