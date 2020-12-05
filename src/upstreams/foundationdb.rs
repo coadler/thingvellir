@@ -2,8 +2,9 @@ use futures::FutureExt;
 use std::marker::PhantomData;
 use std::sync::Arc;
 
-use foundationdb::tuple::Subspace;
-use foundationdb::{future::FdbSlice, Database, FdbError, FdbResult, TransactOption};
+use foundationdb::{
+    future::FdbSlice, tuple::Subspace, Database, FdbError, FdbResult, TransactOption,
+};
 
 use super::serializers::UpstreamSerializer;
 use super::traits::ToPrimaryKey;
@@ -116,8 +117,9 @@ where
 
         request.into_processing().spawn(async move {
             db.transact_boxed::<'_, _, _, _, FdbError>(
-                key,
-                |tx, key| {
+                (key, serialized),
+                |tx, (key, serialized)| {
+                    let serialized = serialized;
                     async move {
                         tx.set(key, serialized.as_ref());
                         Ok(())
