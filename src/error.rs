@@ -89,6 +89,7 @@ impl From<cassandra_cpp::Error> for ShardError {
     }
 }
 
+#[cfg(feature = "fdb")]
 impl From<foundationdb::FdbError> for UpstreamError {
     fn from(error: foundationdb::FdbError) -> Self {
         UpstreamError::DriverError {
@@ -97,6 +98,7 @@ impl From<foundationdb::FdbError> for UpstreamError {
     }
 }
 
+#[cfg(feature = "fdb")]
 impl From<foundationdb::FdbError> for ShardError {
     fn from(error: foundationdb::FdbError) -> Self {
         let upstream_error: UpstreamError = error.into();

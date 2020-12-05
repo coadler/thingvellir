@@ -25,7 +25,7 @@ pub struct FoundationDbFactoryBuilder<S> {
 }
 
 impl<S> FoundationDbFactoryBuilder<S> {
-    fn with_serializer(subspace: Subspace, serializer: S) -> Self {
+    pub fn with_serializer(subspace: Subspace, serializer: S) -> Self {
         Self {
             subspace,
             serializer,

@@ -11,7 +11,8 @@ documentation = "https://docs.rs/thingvellir"
 description = "a concurrent, shared-nothing abstraction that manages an assembly of things"
 
 [features]
-default = ["cassandra", "cbor", "json", "fdb"]
+# default = ["cassandra", "cbor", "json", "fdb"]
+default = []
 cassandra = ["cassandra-cpp"]
 cbor = ["serde_cbor", "serde"]
 json = ["serde_json", "serde"]
@@ -42,3 +43,7 @@ tokio-test = "0.2"
 [[example]]
 name = "cassandra"
 required-features = ["cassandra"]
+
+[[example]]
+name = "foundationdb"
+required-features = ["fdb", "cbor"]

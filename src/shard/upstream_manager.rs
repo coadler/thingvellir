@@ -21,11 +21,11 @@ pub(super) struct UpstreamManager<Key, Data, Upstream> {
 }
 
 impl<
-        Key: Hash + Eq + Clone,
-        Data,
-        Upstream: LoadFromUpstream<Key, Data>,
-        MaybeMutableUpstream: super::marker::MaybeMutableUpstream<Key, Data, Immutable = Upstream>,
-    > UpstreamManager<Key, Data, MaybeMutableUpstream>
+    Key: Hash + Eq + Clone,
+    Data,
+    Upstream: LoadFromUpstream<Key, Data>,
+    MaybeMutableUpstream: super::marker::MaybeMutableUpstream<Key, Data, Immutable = Upstream>,
+> UpstreamManager<Key, Data, MaybeMutableUpstream>
 {
     pub(super) fn new(
         internal_sender: mpsc::UnboundedSender<InternalMessage<Key, Data>>,
@@ -132,7 +132,7 @@ impl<
             .is_some()
         {
             // todo: we should panic here.
-            println!("warning: in progress commit already exists");
+            // println!("warning: in progress commit already exists");
             return;
         }
 
