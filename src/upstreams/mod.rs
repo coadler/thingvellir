@@ -1,6 +1,6 @@
 #[cfg(feature = "cassandra")]
 pub mod cassandra;
-// #[cfg(feature = "fdb")]
+#[cfg(feature = "fdb")]
 pub mod foundationdb;
 
 mod serializers;
