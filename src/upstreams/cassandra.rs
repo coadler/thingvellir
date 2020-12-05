@@ -234,12 +234,15 @@ mod test {
     use cassandra_cpp::{Cluster, Statement};
     use serde::{Deserialize, Serialize};
 
-    async fn create_upstream_factory(
-    ) -> Result<CassandraKvCborUpstreamFactory, crate::UpstreamError> {
+    async fn create_upstream_factory()
+    -> Result<CassandraKvCborUpstreamFactory, crate::UpstreamError> {
         let mut cluster = Cluster::default();
         cluster.set_contact_points("127.0.0.1").unwrap();
         let session = cluster.connect_async().await?;
-        let statement = Statement::new("CREATE KEYSPACE IF NOT EXISTS test_thingvellir_cassandra_upstream WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true", 0);
+        let statement = Statement::new(
+            "CREATE KEYSPACE IF NOT EXISTS test_thingvellir_cassandra_upstream WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'}  AND durable_writes = true",
+            0,
+        );
         session.execute(&statement).await?;
         let statement = Statement::new(
             "DROP TABLE IF EXISTS test_thingvellir_cassandra_upstream.data",

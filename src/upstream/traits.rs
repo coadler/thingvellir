@@ -16,8 +16,10 @@ pub trait UpstreamFactory<Key, Data: ServiceData> {
     fn create(&mut self) -> Self::Upstream;
 }
 
-impl<Key, Data: ServiceData, T: Clone + LoadFromUpstream<Key, Data>> UpstreamFactory<Key, Data>
-    for T
+impl<Key, Data, T> UpstreamFactory<Key, Data> for T
+where
+    Data: ServiceData,
+    T: Clone + LoadFromUpstream<Key, Data>,
 {
     type Upstream = Self;
 
@@ -32,11 +34,10 @@ pub trait MutableUpstreamFactory<Key, Data: ServiceData> {
     fn create(&mut self) -> Self::Upstream;
 }
 
-impl<
-        Key,
-        Data: ServiceData,
-        T: Clone + LoadFromUpstream<Key, Data> + CommitToUpstream<Key, Data>,
-    > MutableUpstreamFactory<Key, Data> for T
+impl<Key, Data, T> MutableUpstreamFactory<Key, Data> for T
+where
+    Data: ServiceData,
+    T: Clone + LoadFromUpstream<Key, Data> + CommitToUpstream<Key, Data>,
 {
     type Upstream = Self;
 
